@@ -1,0 +1,424 @@
+<!-- This example is following frontend and backend separation.
+
+    This .html performs two steps:
+    1. Create a html template skeleton, with all the elements defined (some left empty) and named with ids.
+    2. Load index.js to populate the data into empty elements.
+    -->
+
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        /*position the autocomplete items to be the same width as the container:*/
+        top: 100%;
+        left: 0;
+        right: 0;
+    }
+
+    .autocomplete-items div {
+        padding: 10px;
+        cursor: pointer;
+        background-color: #fff;
+        border-bottom: 1px solid #d4d4d4;
+    }
+
+    /*when hovering an item:*/
+    .autocomplete-items div:hover {
+        background-color: #e9e9e9;
+    }
+
+    /*when navigating through the items using the arrow keys:*/
+    .autocomplete-active {
+        background-color: DodgerBlue !important;
+        color: #ffffff;
+    }
+</style>
+    <title>Movies List</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#" onclick="pageSave('null', true, true, false)">Movies List</a>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="d-flex align-items-center ml-auto" style="margin-right: 100px;">
+            <button type="button" onclick="Home()" class="btn btn-outline-success my-2 my-sm-0 mr-2" style= "margin-right: 10px;">Home</button>
+            <form action="shoppingCart.html">
+                <button type="submit" class="btn btn-outline-success my-2 my-sm-0 mr-2" style= "margin-right: 10px;">Checkout</button>
+            </form>
+        </div>
+        <form class="form-inline my-2 my-lg-0 ml-4" id="frm1" style="margin-top: 10px;">
+            <div class="d-flex align-items-center ml-auto">
+                <div class="autocomplete" id ="autocomplete">
+                    <input  type="text" placeholder="Movie Name" id="autoTitle" aria-label="Movie Name" name="title">
+                </div>
+                <input class="form-control mr-sm-2" type="text" placeholder="Director Name" aria-label="Director Name" name="director">
+                <input class="form-control mr-sm-2" type="text" placeholder="Year" aria-label="Year" name="year">
+                <input class="form-control mr-sm-2" type="text" placeholder="Star Name" aria-label="Star Name" name="name">
+                <button type="button" class="btn btn-outline-success my-2 my-sm-0 mr-2" type="submit" id="myButton">Search</button>
+            </div>
+        </form>
+    </div>
+</nav>
+
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Movies</h1>
+        </div>
+        <div class="col-md-4 text-right">
+            <h6 class="d-inline-block">Number of Movies per Page:</h6>
+            <select id="numMovies" onchange="pageChange()" name="pages" class="mx-2">
+                <option value="null" selected="selected">None</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value=50>50</option>
+                <option value="100">100</option>
+            </select>
+
+            <h6 class="d-inline-block">Sort Movies By:</h6>
+            <select id="sortMovies" onchange="sortTable()" name="sort" class="mx-2">
+                <option value="null" selected="selected">None</option>
+                <option value="1">Title↑ Rating↑</option>
+                <option value="2">Title↑ Rating↓</option>
+                <option value="3">Title↓ Rating↑</option>
+                <option value="4">Title↓ Rating↓</option>
+                <option value="5">Rating↑ Title↑</option>
+                <option value="6">Rating↑ Title↓</option>
+                <option value="7">Rating↓ Title↑</option>
+                <option value="8">Rating↓ Title↓</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="container mt-3">
+        <!--<a onclick="pageSave('null', true, true)"><h1>Movies</h1></a>-->
+
+        <!-- Id "star_table" is useful for jQuery to find the html element with id, class here is mapping to Bootstrap defined class CSS -->
+        <table id=movie_table class="table table-striped">
+            <!-- Create a table header -->
+            <thead>
+            <tr>
+                <!-- Titles of each column-->
+                <th>Title</th>
+                <th>Director</th>
+                <th>Year</th>
+                <th>Rating</th>
+                <th>Genres</th>
+                <th>Stars</th>
+                <th>Add to Cart</th>
+            </tr>
+            </thead>
+            <!-- Table body is left empty here, will be populated with the data retrieved with index.js -->
+            <!-- Again, id "movie_table_body" is useful for jQuery to find this html element -->
+            <tbody id=movie_table_body></tbody>
+        </table>
+    </div>
+</div>
+<div class="row justify-content-center">
+    <div class="col-md-12 text-center">
+        <button type="button" onclick="prev()" class="btn btn-primary mr-3">Prev</button>
+        <button type="button" onclick="next()" class="btn btn-primary ml-3">Next</button>
+    </div>
+</div>
+<!-- Load jQuery and Bootstrap JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<!--Home-->
+<script>
+    function Home() {
+        window.location.replace("main.html")
+    }
+</script>
+<!--SEARCH BAR -->
+<script>
+    var typingTimer;
+    var done = 300;
+    var $input = $('#autoTitle');
+    //on keyup, start the countdown
+    $input.on('keyup', function (e) {
+        if(e.keyCode != 38 && e.keyCode != 40 && e.keyCode != 13){
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(
+                callAuto, done);
+        }
+    });
+
+    //on keydown, clear the countdown
+    $input.on('keydown', function (e) {
+        if(e.keyCode != 38 && e.keyCode != 40 && e.keyCode != 13) {
+            clearTimeout(typingTimer);
+        } else if(e.keyCode == 13){
+            goToIndex();
+        }
+    });
+    function callAuto(){
+        autocomplete(document.getElementById("autoTitle"));
+    }
+    function autocomplete(inp) {
+        console.log("Autocomplete start");
+        /*the autocomplete function takes two arguments,
+        the text field element and an array of possible autocompleted values:*/
+        var currentFocus;
+        /*execute a function when someone writes in the text field:*/
+        var val = inp.value, already = false;
+
+        /*close any already open lists of autocompleted values*/
+        closeAllLists();
+        if (!val) {
+            return false;
+        }
+        if (val.length < 3) {
+            return false;
+        } else { // call to servlet to receive all rows in table with the title starting like the input
+            let s = JSON.parse(sessionStorage.getItem('searchBar'));
+            if(s == null || window.sessionStorage.getItem("CURRENTVAL") != val.substring(0,3)){
+                window.sessionStorage.setItem("CURRENTVAL", val.substring(0,3));
+                console.log("Ajax");
+                populateTitleList(val);
+                already = true
+            }
+        }
+        if(!already){
+            console.log("Cached listing");
+            fill(val);
+        }
+        function fill(val){
+            var a, b, i, search = JSON.parse(sessionStorage.getItem('searchBar'));
+            console.log(search);
+            currentFocus = -1;
+            /*create a DIV element that will contain the items (values):*/
+            a = document.createElement("DIV");
+            a.setAttribute("id", "autoTitleautocomplete-list");
+            a.setAttribute("class", "autocomplete-items");
+            /*append the DIV element as a child of the autocomplete container:*/
+            let pNode = document.getElementById("autocomplete");
+            pNode.appendChild(a);
+            /*for each item in the array...*/
+            let len = search.length;
+            if(len > 10){
+                len = 10;
+            }
+            let real = 0;
+            const newVal = val.split(" ");
+            for (i = 0; real < len; i++) {
+                let tit = search[i];
+                let flag = true;
+                var j;
+                for(j = 0; j < newVal.length; j++){
+                    if(!tit.toLowerCase().includes(newVal[j])){
+                        flag = false;
+                        break;
+                    }
+                }
+                if(flag){
+                    /*create a DIV element for each matching element:*/
+                    b = document.createElement("DIV");
+                    /*make the matching letters bold:*/
+                    b.innerHTML = '<a href="single-movie.html?id=' + tit + '">' +
+                        tit + '</a>';
+                    a.appendChild(b);
+                    real++;
+                }
+            }
+        }
+        function populateTitleList(val){
+            return jQuery.ajax({
+                dataType: "json", // Setting return data type
+                method: "GET", // Setting request method
+                url: "api/search?title=" + val,
+                success: function (data){
+                    const temp = [];
+                    let i = 0;
+                    for(i; i < data.length; i++){
+                        temp[i] = data[i]["movieTitle"];
+                    }
+                    window.sessionStorage.setItem("searchBar", JSON.stringify(temp));
+                    fill(val);
+                } // Setting callback function to handle data returned successfully by the StarsServlet
+            });
+
+        }
+        /*execute a function presses a key on the keyboard:*/
+        inp.addEventListener("keydown", function(e) {
+            var x = document.getElementById("autoTitleautocomplete-list");
+            if (x) x = x.getElementsByTagName("div");
+            if (e.keyCode == 40) {
+                /*If the arrow DOWN key is pressed,
+                increase the currentFocus variable:*/
+                currentFocus++;
+                /*and and make the current item more visible:*/
+                addActive(x);
+                document.getElementById("autoTitle").value = x[currentFocus].textContent;
+            } else if (e.keyCode == 38) { //up
+                /*If the arrow UP key is pressed,
+                decrease the currentFocus variable:*/
+                currentFocus--;
+                /*and and make the current item more visible:*/
+                addActive(x);
+                document.getElementById("autoTitle").value = x[currentFocus].textContent;
+            } else if (e.keyCode == 13) {
+                /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                e.preventDefault();
+                if (currentFocus > -1) {
+                    /*and simulate a click on the "active" item:*/
+                    // if (x) x[currentFocus].click();
+                    window.location.href = "single-movie.html?id=" + x[currentFocus].textContent;
+                }
+            }
+        });
+        function addActive(x) {
+            /*a function to classify an item as "active":*/
+            if (!x) return false;
+            /*start by removing the "active" class on all items:*/
+            removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            /*add class "autocomplete-active":*/
+            x[currentFocus].classList.add("autocomplete-active");
+        }
+        function removeActive(x) {
+            /*a function to remove the "active" class from all autocomplete items:*/
+            for (var i = 0; i < x.length; i++) {
+                x[i].classList.remove("autocomplete-active");
+            }
+        }
+        function closeAllLists(elmnt) {
+            /*close all autocomplete lists in the document,
+            except the one passed as an argument:*/
+            var x = document.getElementsByClassName("autocomplete-items");
+            for (var i = 0; i < x.length; i++) {
+                if (elmnt != x[i] && elmnt != inp) {
+                    x[i].parentNode.removeChild(x[i]);
+                }
+            }
+        }
+        /*execute a function when someone clicks in the document:*/
+        document.addEventListener("click", function (e) {
+            closeAllLists(e.target);
+        });
+        return true;
+    }
+
+</script>
+<!--Reload-->
+<script>
+    document.getElementById("myButton").addEventListener("click", reloadSearch);
+    function reloadSearch(){
+        generalReset();
+        var x =document.getElementById("frm1");
+        var title = x.elements[0].value;
+        var director = x.elements[1].value;
+        var year = x.elements[2].value;
+        var name = x.elements[3].value;
+        window.location.href = "index.html?sort=" + "null"  + "&genre=" + "null" + "&title=" + title + "&director=" + director + "&year=" + year + "&name=" + name;
+    }
+</script>
+<!--Page Prev-->
+<script>
+    function prev(){
+        if(current != 0){
+            current--;
+            window.sessionStorage.setItem("current", current);
+            handleMovieResult(movieData);
+        }
+    }
+</script>
+
+<!--Page Next-->
+<script>
+    function next(){
+        if(current < max){
+            current++;
+            window.sessionStorage.setItem("current", current);
+            handleMovieResult(movieData);
+        }
+    }
+</script>
+
+<!--Save page settings-->
+<script>
+    function pageSave(genre, refresh, hardReset, change){
+        if(hardReset == true){
+            generalReset();
+            window.sessionStorage.setItem("title", "null");
+            window.sessionStorage.setItem("director", "null");
+            window.sessionStorage.setItem("year", "null");
+            window.sessionStorage.setItem("name", "null");
+            window.sessionStorage.setItem("letter", "null");
+        }
+        if(change == true){
+            var sortSelect = document.getElementById("sortMovies");
+            var sortOption = sortSelect.options[sortSelect.selectedIndex].value;
+
+            window.sessionStorage.setItem("sort", sortOption);
+
+            var pageSelect = document.getElementById("numMovies");
+            var pageOption = pageSelect.options[pageSelect.selectedIndex].value;
+            if(pageOption == "null"){
+                pageOption = "20";
+            }
+            window.sessionStorage.setItem("limit", pageOption);
+            window.sessionStorage.setItem("current", current);
+            window.sessionStorage.setItem("genre", genre);
+        }
+        if(refresh == true){
+            sortOption = window.sessionStorage.getItem("sort");
+            var title, director, year, name, letter
+            title = window.sessionStorage.getItem("title");
+            director = window.sessionStorage.getItem("director");
+            year = window.sessionStorage.getItem("year");
+            name = window.sessionStorage.getItem("name");
+            letter = window.sessionStorage.getItem("letter");
+            jQuery.ajax({
+                dataType: "json", // Setting return data type
+                method: "GET", // Setting request method
+                url: "api/movies?sort=" + sortOption  + "&genre=" + genre + "&title=" + title + "&director=" + director + "&year=" + year + "&name=" + name + "&letter=" + letter, // Setting request url, which is mapped by StarsServlet in Stars.java
+                success: (resultData) => handleMovieResult(resultData) // Setting callback function to handle data returned successfully by the StarsServlet
+            });
+        }
+    }
+</script>
+<!--Page Limit-->
+<script>
+    function pageChange(){
+        let genres = getParameterByName('genre');
+        pageSave(genres, false, false, true);
+        handleMovieResult(movieData);
+
+    }
+</script>
+<!--Sort by title-->
+<script>
+    function sortTable() {
+        let genres = getParameterByName('genre');
+        pageSave(genres, true, false, true);
+        // // window.location.reload();
+    }
+
+</script>
+
+
+
+<!-- Load our own JS file -->
+<!-- The path is relative to index.html, since these two files are in the same directory -->
+<!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
+     otherwise the url is relative to the root path-->
+<script src="index.js"></script>
+</body>
+
+
+</html>

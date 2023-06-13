@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Font Library for Calendar Selection-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <title>Payment Form</title>
+    <style>
+        /* Control location of payment details and submit */
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .input-box-container {
+            border: 1px solid black;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        /* Adjust how wide input boxes are */
+        .form-control {
+            width: 250px;
+        }
+        /* Make button in the payment form pretty */
+        #orderBtn {
+            background-color: black;
+            color: white;
+            border-radius: 5px;
+        }
+        .font-style {
+            font-style: italic;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        /*when hovering an item:*/
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        /*when navigating through the items using the arrow keys:*/
+        .autocomplete-active {
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#" onclick="pageSave('null', true, true, false)">Movies List</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="d-flex align-items-center ml-auto" style="margin-right: 100px;">
+                <button type="button" onclick="Home()" class="btn btn-outline-success my-2 my-sm-0 mr-2" style= "margin-right: 10px;">Home</button>
+                <form action="shoppingCart.html">
+                    <button type="submit" class="btn btn-outline-success my-2 my-sm-0 mr-2" style= "margin-right: 10px;">Checkout</button>
+                </form>
+            </div>
+            <form class="form-inline my-2 my-lg-0 ml-4" id="frm1" style="margin-top: 10px;">
+                <div class="d-flex align-items-center ml-auto">
+                    <div class="autocomplete" id ="autocomplete">
+                        <input  type="text" placeholder="Movie Name" id="autoTitle" aria-label="Movie Name" name="title">
+                    </div>
+                    <input class="form-control mr-sm-2" type="text" placeholder="Director Name" aria-label="Director Name" name="director">
+                    <input class="form-control mr-sm-2" type="text" placeholder="Year" aria-label="Year" name="year">
+                    <input class="form-control mr-sm-2" type="text" placeholder="Star Name" aria-label="Star Name" name="name">
+                    <button type="button" class="btn btn-outline-success my-2 my-sm-0 mr-2" type="submit" id="myButton">Search</button>
+                </div>
+            </form>
+        </div>
+    </nav>
+
+<h1 class="card-title mb-4"><span class="font-style">Payment Information</span></h1>
+<div class="container my-5">
+    <div class="card border-0 shadow">
+        <div class="card-body p-5 text-center">
+            <h2 class="card-title mb-4">Payment Details</h2>
+            <div id="payment_error_message"></div>
+            <form id = 'payment_form' method="POST" action="#">
+                <div class="input-box-container">
+                    <div class="form-group">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" class="form-control form-control-sm" name = "cardNumber" id="cardNumber" placeholder="1111 2222 3333 4444">
+                    </div>
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" class="form-control form-control-sm" name = "firstName" id="firstName" placeholder="Soh">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" class="form-control form-control-sm" name = "lastName" id="lastName" placeholder="Broqqe">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" name = "date" id="date" placeholder="YYYY-MM-DD">
+                            <div class="input-group-append">
+                                <span class="input-group-text" id="calendarIcon"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="totalBox"></div>
+                    <button type="submit" class="btn btn-primary" id="orderBtn">Place Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- Load jQuery and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script>
+    function Home() {
+        window.location.replace("main.html")
+        console.log("GO TO MAIN");
+    }
+</script>
+
+    <script>
+        var typingTimer;
+        var done = 300;
+        var $input = $('#autoTitle');
+        //on keyup, start the countdown
+        $input.on('keyup', function (e) {
+            if(e.keyCode != 38 && e.keyCode != 40 && e.keyCode != 13){
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(
+                    callAuto, done);
+            }
+        });
+
+        //on keydown, clear the countdown
+        $input.on('keydown', function (e) {
+            if(e.keyCode != 38 && e.keyCode != 40 && e.keyCode != 13) {
+                clearTimeout(typingTimer);
+            } else if(e.keyCode == 13){
+                goToIndex();
+            }
+        });
+        function callAuto(){
+            autocomplete(document.getElementById("autoTitle"));
+        }
+        function autocomplete(inp) {
+            console.log("Autocomplete start");
+            /*the autocomplete function takes two arguments,
+            the text field element and an array of possible autocompleted values:*/
+            var currentFocus;
+            /*execute a function when someone writes in the text field:*/
+            var val = inp.value, already = false;
+
+            /*close any already open lists of autocompleted values*/
+            closeAllLists();
+            if (!val) {
+                return false;
+            }
+            if (val.length < 3) {
+                return false;
+            } else { // call to servlet to receive all rows in table with the title starting like the input
+                let s = JSON.parse(sessionStorage.getItem('searchBar'));
+                if(s == null || window.sessionStorage.getItem("CURRENTVAL") != val.substring(0,3)){
+                    window.sessionStorage.setItem("CURRENTVAL", val.substring(0,3));
+                    console.log("Ajax");
+                    populateTitleList(val);
+                    already = true
+                }
+            }
+            if(!already){
+                console.log("Cached listing");
+                fill(val);
+            }
+            function fill(val){
+                var a, b, i, search = JSON.parse(sessionStorage.getItem('searchBar'));
+                console.log(search);
+                currentFocus = -1;
+                /*create a DIV element that will contain the items (values):*/
+                a = document.createElement("DIV");
+                a.setAttribute("id", "autoTitleautocomplete-list");
+                a.setAttribute("class", "autocomplete-items");
+                /*append the DIV element as a child of the autocomplete container:*/
+                let pNode = document.getElementById("autocomplete");
+                pNode.appendChild(a);
+                /*for each item in the array...*/
+                let len = search.length;
+                if(len > 10){
+                    len = 10;
+                }
+                let real = 0;
+                const newVal = val.split(" ");
+                for (i = 0; real < len; i++) {
+                    let tit = search[i];
+                    let flag = true;
+                    var j;
+                    for(j = 0; j < newVal.length; j++){
+                        if(!tit.toLowerCase().includes(newVal[j])){
+                            flag = false;
+                            break;
+                        }
+                    }
+                    if(flag){
+                        /*create a DIV element for each matching element:*/
+                        b = document.createElement("DIV");
+                        /*make the matching letters bold:*/
+                        b.innerHTML = '<a href="single-movie.html?id=' + tit + '">' +
+                            tit + '</a>';
+                        a.appendChild(b);
+                        real++;
+                    }
+                }
+            }
+            function populateTitleList(val){
+                return jQuery.ajax({
+                    dataType: "json", // Setting return data type
+                    method: "GET", // Setting request method
+                    url: "api/search?title=" + val,
+                    success: function (data){
+                        const temp = [];
+                        let i = 0;
+                        for(i; i < data.length; i++){
+                            temp[i] = data[i]["movieTitle"];
+                        }
+                        window.sessionStorage.setItem("searchBar", JSON.stringify(temp));
+                        fill(val);
+                    } // Setting callback function to handle data returned successfully by the StarsServlet
+                });
+
+            }
+            /*execute a function presses a key on the keyboard:*/
+            inp.addEventListener("keydown", function(e) {
+                var x = document.getElementById("autoTitleautocomplete-list");
+                if (x) x = x.getElementsByTagName("div");
+                if (e.keyCode == 40) {
+                    /*If the arrow DOWN key is pressed,
+                    increase the currentFocus variable:*/
+                    currentFocus++;
+                    /*and and make the current item more visible:*/
+                    addActive(x);
+                    document.getElementById("autoTitle").value = x[currentFocus].textContent;
+                } else if (e.keyCode == 38) { //up
+                    /*If the arrow UP key is pressed,
+                    decrease the currentFocus variable:*/
+                    currentFocus--;
+                    /*and and make the current item more visible:*/
+                    addActive(x);
+                    document.getElementById("autoTitle").value = x[currentFocus].textContent;
+                } else if (e.keyCode == 13) {
+                    /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        /*and simulate a click on the "active" item:*/
+                        // if (x) x[currentFocus].click();
+                        window.location.href = "single-movie.html?id=" + x[currentFocus].textContent;
+                    }
+                }
+            });
+            function addActive(x) {
+                /*a function to classify an item as "active":*/
+                if (!x) return false;
+                /*start by removing the "active" class on all items:*/
+                removeActive(x);
+                if (currentFocus >= x.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = (x.length - 1);
+                /*add class "autocomplete-active":*/
+                x[currentFocus].classList.add("autocomplete-active");
+            }
+            function removeActive(x) {
+                /*a function to remove the "active" class from all autocomplete items:*/
+                for (var i = 0; i < x.length; i++) {
+                    x[i].classList.remove("autocomplete-active");
+                }
+            }
+            function closeAllLists(elmnt) {
+                /*close all autocomplete lists in the document,
+                except the one passed as an argument:*/
+                var x = document.getElementsByClassName("autocomplete-items");
+                for (var i = 0; i < x.length; i++) {
+                    if (elmnt != x[i] && elmnt != inp) {
+                        x[i].parentNode.removeChild(x[i]);
+                    }
+                }
+            }
+            /*execute a function when someone clicks in the document:*/
+            document.addEventListener("click", function (e) {
+                closeAllLists(e.target);
+            });
+            return true;
+        }
+
+    </script>
+<script>
+    document.getElementById("myButton").addEventListener("click", reloadSearch);
+    function reloadSearch(){
+        generalReset();
+        var x =document.getElementById("frm1");
+        console.log("HERE: " + x.elements);
+        var title = x.elements[0].value;
+        var director = x.elements[1].value;
+        var year = x.elements[2].value;
+        var name = x.elements[3].value;
+        console.log("TITILE :" + title);
+        console.log("director :" + director);
+        console.log("year :" + year);
+        console.log("name :" + name);
+        window.location.href = "index.html?sort=" + "null"  + "&genre=" + "null" + "&title=" + title + "&director=" + director + "&year=" + year + "&name=" + name;
+    }
+</script>
+
+<script>
+    document.getElementById("totalBox").innerHTML = "Total: $" + window.sessionStorage.getItem("total");
+</script>
+
+<script>
+    // That calendar thingy for the card date information WIP
+    $( function() {
+        $( "#date" ).datepicker();
+    } );
+</script>
+
+<script src="payment.js"></script>
+</body>
+</html>
